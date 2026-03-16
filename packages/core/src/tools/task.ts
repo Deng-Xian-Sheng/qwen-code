@@ -134,14 +134,12 @@ export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
     }
 
     const allModels = this.config.getAllConfiguredModels();
-    const modelList = allModels
+    // Only include available models in the list
+    const availableModels = allModels.filter((m) => m.isAvailable !== false);
+
+    const modelList = availableModels
       .map((m) => {
         const fields = [`id: ${m.id}`];
-
-        // Show availability status
-        if (m.isAvailable === false) {
-          fields.push('not configured');
-        }
 
         if (m.description) {
           fields.push(`description: ${m.description}`);
@@ -166,7 +164,7 @@ export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
         return `- ${fields.join(', ')}`;
       })
       .join('\n');
-    const modelIds = allModels.map((m) => m.id);
+    const modelIds = availableModels.map((m) => m.id);
 
     const baseDescription = `Launch a new agent to handle complex, multi-step tasks autonomously. 
 

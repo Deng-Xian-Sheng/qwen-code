@@ -165,7 +165,7 @@ describe('TaskTool', () => {
       expect(taskTool.description).toContain('model');
     });
 
-    it('should show "not configured" for unavailable models in description', async () => {
+    it('should not include unavailable models in description', async () => {
       // Mock getAllConfiguredModels to return a model with isAvailable: false
       vi.spyOn(config, 'getAllConfiguredModels').mockReturnValue([
         {
@@ -185,8 +185,9 @@ describe('TaskTool', () => {
       const testTaskTool = new TaskTool(config);
       await vi.runAllTimersAsync();
 
-      expect(testTaskTool.description).toContain('unavailable-model');
-      expect(testTaskTool.description).toContain('not configured');
+      // Unavailable models should NOT appear in the description
+      expect(testTaskTool.description).not.toContain('unavailable-model');
+      // Available models should appear
       expect(testTaskTool.description).toContain('available-model');
     });
   });
@@ -260,6 +261,42 @@ describe('TaskTool', () => {
       expect(properties.properties.model?.enum).toBeInstanceOf(Array);
       expect(properties.properties.model?.enum).toContain('model-1');
       expect(properties.properties.model?.enum).toContain('model-2');
+    });
+
+    it('should not include unavailable models in model enum', async () => {
+      vi.spyOn(config, 'getAllConfiguredModels').mockReturnValue([
+        {
+          id: 'unavailable-model',
+          label: 'Unavailable Model',
+          authType: AuthType.USE_OPENAI,
+          isAvailable: false,
+        },
+        {
+          id: 'available-model',
+          label: 'Available Model',
+          authType: AuthType.USE_OPENAI,
+          isAvailable: true,
+        },
+      ]);
+
+      const testTaskTool = new TaskTool(config);
+      await vi.runAllTimersAsync();
+
+      const schema = testTaskTool.schema;
+      const properties = schema.parametersJsonSchema as {
+        properties: {
+          model?: {
+            enum?: string[];
+          };
+        };
+      };
+
+      // Unavailable models should NOT appear in the enum
+      expect(properties.properties.model?.enum).not.toContain(
+        'unavailable-model',
+      );
+      // Available models should appear in the enum
+      expect(properties.properties.model?.enum).toContain('available-model');
     });
   });
 
