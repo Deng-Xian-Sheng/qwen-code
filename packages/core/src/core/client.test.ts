@@ -2333,6 +2333,27 @@ Other open files:
       );
     });
 
+    it('should call getCoreSystemPrompt with config parameter', async () => {
+      const contents = [{ role: 'user', parts: [{ text: 'hello' }] }];
+      const generationConfig = { temperature: 0.5 };
+      const abortSignal = new AbortController().signal;
+
+      await client.generateContent(
+        contents,
+        generationConfig,
+        abortSignal,
+        DEFAULT_QWEN_FLASH_MODEL,
+      );
+
+      // Verify getCoreSystemPrompt is called with userMemory, model, and config
+      // Note: The model passed to getCoreSystemPrompt is from config.getModel(), not the requested model
+      expect(getCoreSystemPrompt).toHaveBeenCalledWith(
+        '',
+        'test-model',
+        mockConfig,
+      );
+    });
+
     it('should use current model from config for content generation', async () => {
       const initialModel = client['config'].getModel();
       const contents = [{ role: 'user', parts: [{ text: 'test' }] }];

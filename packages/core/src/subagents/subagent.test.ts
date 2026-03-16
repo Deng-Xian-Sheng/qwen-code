@@ -774,6 +774,46 @@ describe('subagent.ts', () => {
         );
         expect(agent.getTerminateMode()).toBe(SubagentTerminateMode.ERROR);
       });
+
+      it('should include Current Model section in system prompt when model is found', async () => {
+        const { config } = await createMockConfig();
+
+        // Mock getAllConfiguredModels to return a model that matches the default model
+        vi.spyOn(config, 'getAllConfiguredModels').mockReturnValue([
+          {
+            id: 'qwen3-coder-plus',
+            label: 'Qwen3 Coder Plus',
+            description: 'Qwen3 Coder Plus',
+            authType: AuthType.USE_OPENAI,
+            isVision: false,
+            contextWindowSize: 131072,
+          },
+        ]);
+
+        const promptConfig: PromptConfig = { systemPrompt: 'Test prompt.' };
+        const context = new ContextState();
+
+        mockSendMessageStream.mockImplementation(createMockStream(['stop']));
+
+        const scope = await SubAgentScope.create(
+          'test-agent',
+          config,
+          promptConfig,
+          defaultModelConfig,
+          defaultRunConfig,
+        );
+
+        await scope.runNonInteractive(context);
+
+        const generationConfig = getGenerationConfigFromMock();
+        const sysPrompt = generationConfig.systemInstruction as string;
+
+        expect(sysPrompt).toContain('# Current Model');
+        expect(sysPrompt).toContain('id: qwen3-coder-plus');
+        expect(sysPrompt).toContain('description: Qwen3 Coder Plus');
+        expect(sysPrompt).toContain('isVision: false');
+        expect(sysPrompt).toContain('contextWindowSize: 131072');
+      });
     });
 
     describe('runNonInteractive - Execution and Tool Use', () => {

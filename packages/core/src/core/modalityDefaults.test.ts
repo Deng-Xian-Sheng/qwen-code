@@ -139,6 +139,24 @@ describe('defaultModalities', () => {
       expect(m.audio).toBeUndefined();
     });
 
+    // Note: The regex pattern in modalityDefaults.ts uses uppercase 'B' (qwen3.5-397B-A17B)
+    // but the normalize() function converts model names to lowercase.
+    // This test will fail until the regex is fixed to use lowercase.
+    it('returns image + video for qwen3.5-397b-a17b (lowercase due to normalize)', () => {
+      // normalize() converts to lowercase, so the pattern should match lowercase
+      const m = defaultModalities('qwen3.5-397b-a17b');
+      expect(m.image).toBe(true);
+      expect(m.video).toBe(true);
+      expect(m.pdf).toBeUndefined();
+      expect(m.audio).toBeUndefined();
+    });
+
+    it('returns image + video for qwen3.5-397b-a17b variants (prefix match)', () => {
+      const m = defaultModalities('qwen3.5-397b-a17b-instruct');
+      expect(m.image).toBe(true);
+      expect(m.video).toBe(true);
+    });
+
     it('returns text-only for qwen-turbo', () => {
       expect(defaultModalities('qwen-turbo')).toEqual({});
     });

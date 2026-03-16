@@ -171,7 +171,7 @@ describe('ContentGenerationPipeline', () => {
       );
     });
 
-    it('should ignore request.model override and always use configured model', async () => {
+    it('should use request.model when provided, falling back to configured model', async () => {
       // Arrange
       const request: GenerateContentParameters = {
         model: 'override-model',
@@ -207,15 +207,98 @@ describe('ContentGenerationPipeline', () => {
 
       // Assert
       expect(result).toBe(mockGeminiResponse);
+      // request.model should take priority over configured model
       expect(
         (mockConverter as unknown as { setModel: Mock }).setModel,
-      ).toHaveBeenCalledWith('test-model');
+      ).toHaveBeenCalledWith('override-model');
       expect(mockClient.chat.completions.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'test-model',
+          model: 'override-model',
         }),
         expect.any(Object),
       );
+    });
+
+    it('should fall back to configured model when request.model is not provided', async () => {
+      // Arrange
+      const request: GenerateContentParameters = {
+        model: 'test-model',
+        contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
+      };
+      const userPromptId = 'test-prompt-id';
+
+      const mockMessages = [
+        { role: 'user', content: 'Hello' },
+      ] as OpenAI.Chat.ChatCompletionMessageParam[];
+      const mockOpenAIResponse = {
+        id: 'response-id',
+        choices: [
+          { message: { content: 'Hello response' }, finish_reason: 'stop' },
+        ],
+        created: Date.now(),
+        model: 'test-model',
+      } as OpenAI.Chat.ChatCompletion;
+      const mockGeminiResponse = new GenerateContentResponse();
+
+      (mockConverter.convertGeminiRequestToOpenAI as Mock).mockReturnValue(
+        mockMessages,
+      );
+      (mockConverter.convertOpenAIResponseToGemini as Mock).mockReturnValue(
+        mockGeminiResponse,
+      );
+      (mockClient.chat.completions.create as Mock).mockResolvedValue(
+        mockOpenAIResponse,
+      );
+
+      // Act
+      const result = await pipeline.execute(request, userPromptId);
+
+      // Assert
+      expect(result).toBe(mockGeminiResponse);
+      // Should use configured model when request.model is not provided
+      expect(
+        (mockConverter as unknown as { setModel: Mock }).setModel,
+      ).toHaveBeenCalledWith('test-model');
+    });
+
+    it('should derive modalities from effective model', async () => {
+      // Arrange
+      const request: GenerateContentParameters = {
+        model: 'qwen3.5-plus',
+        contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
+      };
+      const userPromptId = 'test-prompt-id';
+
+      const mockMessages = [
+        { role: 'user', content: 'Hello' },
+      ] as OpenAI.Chat.ChatCompletionMessageParam[];
+      const mockOpenAIResponse = {
+        id: 'response-id',
+        choices: [
+          { message: { content: 'Hello response' }, finish_reason: 'stop' },
+        ],
+      } as OpenAI.Chat.ChatCompletion;
+      const mockGeminiResponse = new GenerateContentResponse();
+
+      (mockConverter.convertGeminiRequestToOpenAI as Mock).mockReturnValue(
+        mockMessages,
+      );
+      (mockConverter.convertOpenAIResponseToGemini as Mock).mockReturnValue(
+        mockGeminiResponse,
+      );
+      (mockClient.chat.completions.create as Mock).mockResolvedValue(
+        mockOpenAIResponse,
+      );
+
+      // Act
+      await pipeline.execute(request, userPromptId);
+
+      // Assert
+      // setModalities should be called with modalities derived from the effective model
+      expect(mockConverter.setModalities).toHaveBeenCalledWith({
+        image: true,
+        video: true,
+      });
     });
 
     it('should handle tools in request', async () => {
@@ -1120,6 +1203,97 @@ describe('ContentGenerationPipeline', () => {
         ).length;
       }
       expect(totalFunctionCalls).toBe(1);
+    });
+
+    it('should use request.model for streaming requests', async () => {
+      // Arrange
+      const request: GenerateContentParameters = {
+        model: 'streaming-override-model',
+        contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
+      };
+      const userPromptId = 'test-prompt-id';
+
+      const mockStream = {
+        async *[Symbol.asyncIterator]() {
+          yield {
+            id: 'chunk-1',
+            choices: [{ delta: { content: 'Hello' }, finish_reason: 'stop' }],
+          };
+        },
+      };
+
+      const mockGeminiResponse = new GenerateContentResponse();
+      mockGeminiResponse.candidates = [
+        { content: { parts: [{ text: 'Hello' }], role: 'model' } },
+      ];
+
+      (mockConverter.convertGeminiRequestToOpenAI as Mock).mockReturnValue([]);
+      (mockConverter.convertOpenAIChunkToGemini as Mock).mockReturnValue(
+        mockGeminiResponse,
+      );
+      (mockClient.chat.completions.create as Mock).mockResolvedValue(
+        mockStream,
+      );
+
+      // Act
+      const resultGenerator = await pipeline.executeStream(
+        request,
+        userPromptId,
+      );
+      for await (const _ of resultGenerator) {
+        // Consume stream
+      }
+
+      // Assert
+      expect(mockConverter.setModel).toHaveBeenCalledWith(
+        'streaming-override-model',
+      );
+    });
+
+    it('should derive modalities from effective model for streaming requests', async () => {
+      // Arrange
+      const request: GenerateContentParameters = {
+        model: 'qwen-vl-max',
+        contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
+      };
+      const userPromptId = 'test-prompt-id';
+
+      const mockStream = {
+        async *[Symbol.asyncIterator]() {
+          yield {
+            id: 'chunk-1',
+            choices: [{ delta: { content: 'Hello' }, finish_reason: 'stop' }],
+          };
+        },
+      };
+
+      const mockGeminiResponse = new GenerateContentResponse();
+      mockGeminiResponse.candidates = [
+        { content: { parts: [{ text: 'Hello' }], role: 'model' } },
+      ];
+
+      (mockConverter.convertGeminiRequestToOpenAI as Mock).mockReturnValue([]);
+      (mockConverter.convertOpenAIChunkToGemini as Mock).mockReturnValue(
+        mockGeminiResponse,
+      );
+      (mockClient.chat.completions.create as Mock).mockResolvedValue(
+        mockStream,
+      );
+
+      // Act
+      const resultGenerator = await pipeline.executeStream(
+        request,
+        userPromptId,
+      );
+      for await (const _ of resultGenerator) {
+        // Consume stream
+      }
+
+      // Assert
+      expect(mockConverter.setModalities).toHaveBeenCalledWith({
+        image: true,
+        video: true,
+      });
     });
   });
 

@@ -14,6 +14,7 @@ import type { ContentGeneratorConfig } from '../contentGenerator.js';
 import type { OpenAICompatibleProvider } from './provider/index.js';
 import { OpenAIContentConverter } from './converter.js';
 import type { ErrorHandler, RequestContext } from './errorHandler.js';
+import { defaultModalities } from '../modalityDefaults.js';
 
 /**
  * Error thrown when the API returns an error embedded as stream content
@@ -54,12 +55,9 @@ export class ContentGenerationPipeline {
     request: GenerateContentParameters,
     userPromptId: string,
   ): Promise<GenerateContentResponse> {
-    // For OpenAI-compatible providers, the configured model is the single source of truth.
-    // We intentionally ignore request.model because upstream callers may pass a model string
-    // that is not valid/available for the OpenAI-compatible backend.
-    const effectiveModel = this.contentGeneratorConfig.model;
+    const effectiveModel = request.model || this.contentGeneratorConfig.model;
     this.converter.setModel(effectiveModel);
-    this.converter.setModalities(this.contentGeneratorConfig.modalities ?? {});
+    this.converter.setModalities(defaultModalities(effectiveModel));
     return this.executeWithErrorHandling(
       request,
       userPromptId,
@@ -85,9 +83,9 @@ export class ContentGenerationPipeline {
     request: GenerateContentParameters,
     userPromptId: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
-    const effectiveModel = this.contentGeneratorConfig.model;
+    const effectiveModel = request.model || this.contentGeneratorConfig.model;
     this.converter.setModel(effectiveModel);
-    this.converter.setModalities(this.contentGeneratorConfig.modalities ?? {});
+    this.converter.setModalities(defaultModalities(effectiveModel));
     return this.executeWithErrorHandling(
       request,
       userPromptId,

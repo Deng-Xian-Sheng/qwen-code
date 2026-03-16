@@ -1009,6 +1009,36 @@ Important Rules:
       finalPrompt += `\n\n${unicodePathInstructions}`;
     }
 
+    const allModels = this.runtimeContext.getAllConfiguredModels();
+    const currentModelInfo = allModels.find((m) => m.id === model);
+    if (currentModelInfo) {
+      const fields = [`id: ${currentModelInfo.id}`];
+
+      if (currentModelInfo.description) {
+        fields.push(`description: ${currentModelInfo.description}`);
+      }
+
+      if (currentModelInfo.isVision !== undefined) {
+        fields.push(`isVision: ${currentModelInfo.isVision}`);
+      }
+
+      if (currentModelInfo.contextWindowSize !== undefined) {
+        fields.push(`contextWindowSize: ${currentModelInfo.contextWindowSize}`);
+      }
+
+      if (currentModelInfo.modalities) {
+        for (const [modality, supported] of Object.entries(
+          currentModelInfo.modalities,
+        )) {
+          if (supported !== undefined) {
+            fields.push(`${modality}: ${supported}`);
+          }
+        }
+      }
+
+      finalPrompt += `\n\n# Current Model\n- ${fields.join(', ')}`;
+    }
+
     // Append user memory (QWEN.md + output-language.md) to ensure subagent respects project conventions
     const userMemory = this.runtimeContext.getUserMemory();
     if (userMemory && userMemory.trim().length > 0) {

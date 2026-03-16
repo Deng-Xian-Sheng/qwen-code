@@ -21,6 +21,7 @@ import {
   type ModelSwitchMetadata,
   type RuntimeModelSnapshot,
 } from './types.js';
+import { SharedTokenManager } from '../qwen/sharedTokenManager.js';
 import {
   MODEL_GENERATION_CONFIG_FIELDS,
   CREDENTIAL_FIELDS,
@@ -247,6 +248,42 @@ export class ModelsConfig {
   }
 
   /**
+   * Check if a model has valid credentials available.
+   *
+   * For different model types:
+   * - Runtime models: check RuntimeModelSnapshot for apiKey+baseUrl or envKey
+   * - qwen-oauth: check SharedTokenManager for cached credentials
+   * - Other types: check envKey environment variable
+   */
+  private checkModelAvailability(model: AvailableModel): boolean {
+    // Runtime model: check RuntimeModelSnapshot credentials
+    if (model.isRuntimeModel && model.runtimeSnapshotId) {
+      const snapshot = this.runtimeModelSnapshots.get(model.runtimeSnapshotId);
+      if (snapshot) {
+        return (
+          !!(snapshot.apiKey && snapshot.baseUrl) ||
+          !!(snapshot.apiKeyEnvKey && process.env[snapshot.apiKeyEnvKey])
+        );
+      }
+      return false;
+    }
+
+    // qwen-oauth: check SharedTokenManager for cached credentials
+    if (model.authType === AuthType.QWEN_OAUTH) {
+      const sharedManager = SharedTokenManager.getInstance();
+      return sharedManager.getDebugInfo().hasCredentials;
+    }
+
+    // Other types: check envKey environment variable
+    if (model.envKey) {
+      return !!process.env[model.envKey];
+    }
+
+    // Models without envKey are assumed available
+    return true;
+  }
+
+  /**
    * Get all configured models across authTypes.
    *
    * Notes:
@@ -286,10 +323,15 @@ export class ModelsConfig {
     for (const authType of orderedAuthTypes) {
       // Add runtime option first if it matches this authType
       if (runtimeOption && runtimeOption.authType === authType) {
+        runtimeOption.isAvailable = this.checkModelAvailability(runtimeOption);
         allModels.push(runtimeOption);
       }
       // Add registry models
-      allModels.push(...this.modelRegistry.getModelsForAuthType(authType));
+      const registryModels = this.modelRegistry.getModelsForAuthType(authType);
+      for (const model of registryModels) {
+        model.isAvailable = this.checkModelAvailability(model);
+        allModels.push(model);
+      }
     }
     return allModels;
   }

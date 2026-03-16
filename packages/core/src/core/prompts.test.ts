@@ -13,6 +13,7 @@ import {
   resolvePathFromEnv,
 } from './prompts.js';
 import { isGitRepository } from '../utils/gitUtils.js';
+import type { Config } from '../config/config.js';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -132,6 +133,60 @@ describe('Core System Prompt (prompts.ts)', () => {
     const prompt = getCoreSystemPrompt();
     expect(prompt).not.toContain('# Git Repository');
     expect(prompt).toMatchSnapshot();
+  });
+
+  describe('Current Model section', () => {
+    it('should include Current Model section when config has matching model', () => {
+      vi.stubEnv('SANDBOX', undefined);
+      vi.mocked(isGitRepository).mockReturnValue(false);
+
+      const mockConfig = {
+        getAllConfiguredModels: vi.fn().mockReturnValue([
+          {
+            id: 'test-model',
+            description: 'Test model description',
+            isVision: true,
+            contextWindowSize: 100000,
+            modalities: { image: true, video: true },
+          },
+        ]),
+      } as unknown as Config;
+
+      const prompt = getCoreSystemPrompt(undefined, 'test-model', mockConfig);
+
+      expect(prompt).toContain('# Current Model');
+      expect(prompt).toContain('id: test-model');
+      expect(prompt).toContain('description: Test model description');
+      expect(prompt).toContain('isVision: true');
+      expect(prompt).toContain('contextWindowSize: 100000');
+      expect(prompt).toContain('image: true');
+      expect(prompt).toContain('video: true');
+    });
+
+    it('should format model info correctly', () => {
+      vi.stubEnv('SANDBOX', undefined);
+      vi.mocked(isGitRepository).mockReturnValue(false);
+
+      const mockConfig = {
+        getAllConfiguredModels: vi.fn().mockReturnValue([
+          {
+            id: 'qwen3-coder-plus',
+            description: 'Qwen3 Coder Plus',
+          },
+        ]),
+      } as unknown as Config;
+
+      const prompt = getCoreSystemPrompt(
+        undefined,
+        'qwen3-coder-plus',
+        mockConfig,
+      );
+
+      expect(prompt).toContain('# Current Model');
+      expect(prompt).toContain(
+        '- id: qwen3-coder-plus, description: Qwen3 Coder Plus',
+      );
+    });
   });
 
   describe('QWEN_SYSTEM_MD environment variable', () => {

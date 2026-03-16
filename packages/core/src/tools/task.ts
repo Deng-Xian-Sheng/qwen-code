@@ -40,6 +40,7 @@ export interface TaskParams {
   description: string;
   prompt: string;
   subagent_type: string;
+  model?: string;
 }
 
 const debugLogger = createDebugLogger('TASK');
@@ -132,12 +133,52 @@ export class TaskTool extends BaseDeclarativeTool<TaskParams, ToolResult> {
         .join('\n');
     }
 
+    const allModels = this.config.getAllConfiguredModels();
+    const modelList = allModels
+      .map((m) => {
+        const fields = [`id: ${m.id}`];
+
+        // Show availability status
+        if (m.isAvailable === false) {
+          fields.push('not configured');
+        }
+
+        if (m.description) {
+          fields.push(`description: ${m.description}`);
+        }
+
+        if (m.isVision !== undefined) {
+          fields.push(`isVision: ${m.isVision}`);
+        }
+
+        if (m.contextWindowSize !== undefined) {
+          fields.push(`contextWindowSize: ${m.contextWindowSize}`);
+        }
+
+        if (m.modalities) {
+          for (const [modality, supported] of Object.entries(m.modalities)) {
+            if (supported !== undefined) {
+              fields.push(`${modality}: ${supported}`);
+            }
+          }
+        }
+
+        return `- ${fields.join(', ')}`;
+      })
+      .join('\n');
+    const modelIds = allModels.map((m) => m.id);
+
     const baseDescription = `Launch a new agent to handle complex, multi-step tasks autonomously. 
 
 Available agent types and the tools they have access to:
 ${subagentDescriptions}
 
 When using the Task tool, you must specify a subagent_type parameter to select which agent type to use.
+
+Optional: You can specify a \`model\` parameter to override the subagent's default model.
+Available models:
+${modelList}
+If you encounter a difficult problem that you have tried—unsuccessfully—to solve multiple times, or if you need to find a model with visual capabilities, consider using "Task" and specifying a particular model. For challenging problems, try selecting a model different from the one you typically use; it may offer unique insights.
 
 When NOT to use the Agent tool:
 - If you want to read a specific file path, use the Read or Glob tool instead of the Agent tool, to find the match more quickly
@@ -202,6 +243,11 @@ assistant: "I'm going to use the Task tool to launch the with the greeting-respo
         subagent_type?: {
           enum?: string[];
         };
+        model?: {
+          type?: string;
+          description?: string;
+          enum?: string[];
+        };
       };
     };
     if (schema.properties && schema.properties.subagent_type) {
@@ -210,6 +256,13 @@ assistant: "I'm going to use the Task tool to launch the with the greeting-respo
       } else {
         delete schema.properties.subagent_type.enum;
       }
+    }
+    if (schema.properties) {
+      schema.properties.model = {
+        type: 'string',
+        description: "Optional: Override the subagent's default model",
+        enum: modelIds.length > 0 ? modelIds : undefined,
+      };
     }
   }
 
@@ -486,6 +539,13 @@ class TaskToolInvocation extends BaseToolInvocation<TaskParams, ToolResult> {
         return {
           llmContent: `Subagent "${this.params.subagent_type}" not found`,
           returnDisplay: errorDisplay,
+        };
+      }
+
+      if (this.params.model) {
+        subagentConfig.modelConfig = {
+          ...subagentConfig.modelConfig,
+          model: this.params.model,
         };
       }
 

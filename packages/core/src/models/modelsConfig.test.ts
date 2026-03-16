@@ -4,7 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { ModelsConfig } from './modelsConfig.js';
 import { AuthType } from '../core/contentGenerator.js';
 import type { ContentGeneratorConfig } from '../core/contentGenerator.js';
@@ -894,6 +894,81 @@ describe('ModelsConfig', () => {
           .slice(0, firstNonQwenIndex)
           .every((m) => m.authType === AuthType.QWEN_OAUTH),
       ).toBe(true);
+    });
+
+    it('should set isAvailable to true when envKey environment variable is set', () => {
+      vi.stubEnv('TEST_API_KEY', 'test-key-value');
+
+      const modelProvidersConfig: ModelProvidersConfig = {
+        openai: [
+          {
+            id: 'test-model',
+            name: 'Test Model',
+            baseUrl: 'https://api.example.com/v1',
+            envKey: 'TEST_API_KEY',
+          },
+        ],
+      };
+
+      const modelsConfig = new ModelsConfig({
+        modelProvidersConfig,
+      });
+
+      const allModels = modelsConfig.getAllConfiguredModels();
+      const testModel = allModels.find((m) => m.id === 'test-model');
+
+      expect(testModel?.isAvailable).toBe(true);
+
+      vi.unstubAllEnvs();
+    });
+
+    it('should set isAvailable to false when envKey environment variable is not set', () => {
+      vi.stubEnv('NON_EXISTENT_KEY', undefined);
+
+      const modelProvidersConfig: ModelProvidersConfig = {
+        openai: [
+          {
+            id: 'test-model',
+            name: 'Test Model',
+            baseUrl: 'https://api.example.com/v1',
+            envKey: 'NON_EXISTENT_KEY',
+          },
+        ],
+      };
+
+      const modelsConfig = new ModelsConfig({
+        modelProvidersConfig,
+      });
+
+      const allModels = modelsConfig.getAllConfiguredModels();
+      const testModel = allModels.find((m) => m.id === 'test-model');
+
+      expect(testModel?.isAvailable).toBe(false);
+
+      vi.unstubAllEnvs();
+    });
+
+    it('should set isAvailable to true for models without envKey', () => {
+      const modelProvidersConfig: ModelProvidersConfig = {
+        openai: [
+          {
+            id: 'test-model-no-env',
+            name: 'Test Model No Env',
+            baseUrl: 'https://api.example.com/v1',
+            // No envKey
+          },
+        ],
+      };
+
+      const modelsConfig = new ModelsConfig({
+        modelProvidersConfig,
+      });
+
+      const allModels = modelsConfig.getAllConfiguredModels();
+      const testModel = allModels.find((m) => m.id === 'test-model-no-env');
+
+      // Models without envKey are assumed available
+      expect(testModel?.isAvailable).toBe(true);
     });
   });
 

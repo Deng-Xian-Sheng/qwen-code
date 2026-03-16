@@ -16,6 +16,7 @@ import {
 } from '../subagents/types.js';
 import { type SubAgentScope, ContextState } from '../subagents/subagent.js';
 import { partToString } from '../utils/partUtils.js';
+import { AuthType } from '../core/contentGenerator.js';
 
 // Type for accessing protected methods in tests
 type TaskToolWithProtectedMethods = TaskTool & {
@@ -72,6 +73,7 @@ describe('TaskTool', () => {
       getSessionId: vi.fn().mockReturnValue('test-session-id'),
       getSubagentManager: vi.fn(),
       getGeminiClient: vi.fn().mockReturnValue(undefined),
+      getAllConfiguredModels: vi.fn().mockReturnValue([]),
     } as unknown as Config;
 
     changeListeners = [];
@@ -157,6 +159,36 @@ describe('TaskTool', () => {
         'No subagents are currently configured',
       );
     });
+
+    it('should include available models in description', () => {
+      expect(taskTool.description).toContain('Available models');
+      expect(taskTool.description).toContain('model');
+    });
+
+    it('should show "not configured" for unavailable models in description', async () => {
+      // Mock getAllConfiguredModels to return a model with isAvailable: false
+      vi.spyOn(config, 'getAllConfiguredModels').mockReturnValue([
+        {
+          id: 'unavailable-model',
+          label: 'Unavailable Model',
+          authType: AuthType.USE_OPENAI,
+          isAvailable: false,
+        },
+        {
+          id: 'available-model',
+          label: 'Available Model',
+          authType: AuthType.USE_OPENAI,
+          isAvailable: true,
+        },
+      ]);
+
+      const testTaskTool = new TaskTool(config);
+      await vi.runAllTimersAsync();
+
+      expect(testTaskTool.description).toContain('unavailable-model');
+      expect(testTaskTool.description).toContain('not configured');
+      expect(testTaskTool.description).toContain('available-model');
+    });
   });
 
   describe('schema generation', () => {
@@ -190,6 +222,44 @@ describe('TaskTool', () => {
         };
       };
       expect(properties.properties.subagent_type.enum).toBeUndefined();
+    });
+
+    it('should include model parameter in schema', async () => {
+      // Mock getAllConfiguredModels to return some models
+      vi.spyOn(config, 'getAllConfiguredModels').mockReturnValue([
+        { id: 'model-1', label: 'Model 1', authType: AuthType.USE_OPENAI },
+        { id: 'model-2', label: 'Model 2', authType: AuthType.USE_OPENAI },
+      ]);
+
+      // Create a new TaskTool instance to pick up the mocked models
+      const testTaskTool = new TaskTool(config);
+
+      // Wait for async initialization to complete
+      await vi.runAllTimersAsync();
+
+      const schema = testTaskTool.schema;
+      const properties = schema.parametersJsonSchema as {
+        properties: {
+          subagent_type?: {
+            enum?: string[];
+          };
+          model?: {
+            type?: string;
+            description?: string;
+            enum?: string[];
+          };
+        };
+      };
+
+      expect(properties.properties.model).toBeDefined();
+      expect(properties.properties.model?.type).toBe('string');
+      expect(properties.properties.model?.description).toContain(
+        'Override the subagent',
+      );
+
+      expect(properties.properties.model?.enum).toBeInstanceOf(Array);
+      expect(properties.properties.model?.enum).toContain('model-1');
+      expect(properties.properties.model?.enum).toContain('model-2');
     });
   });
 
@@ -533,6 +603,109 @@ describe('TaskTool', () => {
       const description = invocation.getDescription();
 
       expect(description).toBe('file-search subagent: "Search files"');
+    });
+
+    it('should override subagent model when model parameter is provided', async () => {
+      const params: TaskParams = {
+        description: 'Search files',
+        prompt: 'Find all TypeScript files',
+        subagent_type: 'file-search',
+        model: 'qwen3-coder-flash',
+      };
+
+      const invocation = (
+        taskTool as TaskToolWithProtectedMethods
+      ).createInvocation(params);
+      await invocation.execute();
+
+      expect(mockSubagentManager.loadSubagent).toHaveBeenCalledWith(
+        'file-search',
+      );
+
+      const createScopeCall = vi.mocked(mockSubagentManager.createSubagentScope)
+        .mock.calls[0];
+      const passedConfig = createScopeCall[0] as SubagentConfig;
+
+      expect(passedConfig.modelConfig).toEqual({
+        model: 'qwen3-coder-flash',
+      });
+    });
+
+    it('should preserve existing modelConfig when overriding model', async () => {
+      const subagentWithModelConfig: SubagentConfig = {
+        name: 'file-search',
+        description: 'Specialized agent for searching and analyzing files',
+        systemPrompt: 'You are a file search specialist.',
+        level: 'project',
+        filePath: '/project/.qwen/agents/file-search.md',
+        modelConfig: {
+          model: 'qwen3-coder-plus',
+          temp: 0.7,
+          top_p: 0.9,
+        },
+      };
+
+      vi.mocked(mockSubagentManager.loadSubagent).mockResolvedValue(
+        subagentWithModelConfig,
+      );
+
+      const params: TaskParams = {
+        description: 'Search files',
+        prompt: 'Find all TypeScript files',
+        subagent_type: 'file-search',
+        model: 'qwen3-coder-flash',
+      };
+
+      const invocation = (
+        taskTool as TaskToolWithProtectedMethods
+      ).createInvocation(params);
+      await invocation.execute();
+
+      const createScopeCall = vi.mocked(mockSubagentManager.createSubagentScope)
+        .mock.calls[0];
+      const passedConfig = createScopeCall[0] as SubagentConfig;
+
+      expect(passedConfig.modelConfig).toEqual({
+        model: 'qwen3-coder-flash',
+        temp: 0.7,
+        top_p: 0.9,
+      });
+    });
+
+    it('should use subagent default model when model parameter is not provided', async () => {
+      const subagentWithModelConfig: SubagentConfig = {
+        name: 'file-search',
+        description: 'Specialized agent for searching and analyzing files',
+        systemPrompt: 'You are a file search specialist.',
+        level: 'project',
+        filePath: '/project/.qwen/agents/file-search.md',
+        modelConfig: {
+          model: 'qwen3-coder-plus',
+        },
+      };
+
+      vi.mocked(mockSubagentManager.loadSubagent).mockResolvedValue(
+        subagentWithModelConfig,
+      );
+
+      const params: TaskParams = {
+        description: 'Search files',
+        prompt: 'Find all TypeScript files',
+        subagent_type: 'file-search',
+      };
+
+      const invocation = (
+        taskTool as TaskToolWithProtectedMethods
+      ).createInvocation(params);
+      await invocation.execute();
+
+      const createScopeCall = vi.mocked(mockSubagentManager.createSubagentScope)
+        .mock.calls[0];
+      const passedConfig = createScopeCall[0] as SubagentConfig;
+
+      expect(passedConfig.modelConfig).toEqual({
+        model: 'qwen3-coder-plus',
+      });
     });
   });
 });

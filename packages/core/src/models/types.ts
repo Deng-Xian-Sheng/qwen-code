@@ -105,6 +105,9 @@ export interface AvailableModel {
 
   /** Runtime model snapshot ID (if isRuntimeModel is true) */
   runtimeSnapshotId?: string;
+
+  /** Whether the model has valid credentials available */
+  isAvailable?: boolean;
 }
 
 /**

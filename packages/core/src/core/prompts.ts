@@ -11,6 +11,7 @@ import { ToolNames } from '../tools/tool-names.js';
 import process from 'node:process';
 import { isGitRepository } from '../utils/gitUtils.js';
 import { QWEN_CONFIG_DIR } from '../tools/memoryTool.js';
+import type { Config } from '../config/config.js';
 import type { GenerateContentConfig } from '@google/genai';
 import { createDebugLogger } from '../utils/debugLogger.js';
 
@@ -139,6 +140,7 @@ export function getCustomSystemPrompt(
 export function getCoreSystemPrompt(
   userMemory?: string,
   model?: string,
+  config?: Config,
 ): string {
   // if QWEN_SYSTEM_MD is set (and not 0|false), override system prompt from file
   // default path is .qwen/system.md but can be modified via custom path in QWEN_SYSTEM_MD
@@ -166,7 +168,7 @@ export function getCoreSystemPrompt(
   const basePrompt = systemMdEnabled
     ? fs.readFileSync(systemMdPath, 'utf8')
     : `
-You are Qwen Code, an interactive CLI agent developed by Alibaba Group, specializing in software engineering tasks. Your primary goal is to help users safely and efficiently, adhering strictly to the following instructions and utilizing your available tools.
+You are Qwen Code, an interactive CLI agent developed by Alibaba Group, specializing in software engineering tasks. Your primary goal is to help users efficiently, adhering strictly to the following instructions and utilizing your available tools.
 
 # Core Mandates
 
@@ -347,7 +349,42 @@ ${(function () {
 ${getToolCallExamples(model || '')}
 
 # Final Reminder
-Your core function is efficient and safe assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding safety and potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use '${ToolNames.READ_FILE}' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved.
+Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use '${ToolNames.READ_FILE}' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved.
+
+${(function () {
+  if (config && model) {
+    const allModels = config.getAllConfiguredModels();
+    const currentModel = allModels.find((m) => m.id === model);
+    if (currentModel) {
+      const fields = [`id: ${currentModel.id}`];
+
+      if (currentModel.description) {
+        fields.push(`description: ${currentModel.description}`);
+      }
+
+      if (currentModel.isVision !== undefined) {
+        fields.push(`isVision: ${currentModel.isVision}`);
+      }
+
+      if (currentModel.contextWindowSize !== undefined) {
+        fields.push(`contextWindowSize: ${currentModel.contextWindowSize}`);
+      }
+
+      if (currentModel.modalities) {
+        for (const [modality, supported] of Object.entries(
+          currentModel.modalities,
+        )) {
+          if (supported !== undefined) {
+            fields.push(`${modality}: ${supported}`);
+          }
+        }
+      }
+
+      return `# Current Model\n- ${fields.join(', ')}`;
+    }
+  }
+  return '';
+})()}
 `.trim();
 
   // if QWEN_WRITE_SYSTEM_MD is set (and not 0|false), write base system prompt to file
@@ -500,10 +537,10 @@ I'll also confirm 'requests' is a dependency.
 Looks good, 'requests' is available.
 
 Here's the plan:
-1.  Replace the 'urllib' calls with 'requests'.
-2.  Add proper 'try...except' error handling for the new network calls.
-3.  Remove the old 'urllib' import.
-4.  Run the project's linter and tests to verify the changes.
+1. Replace the 'urllib' calls with 'requests'.
+2. Add proper 'try...except' error handling for the new network calls.
+3. Remove the old 'urllib' import.
+4. Run the project's linter and tests to verify the changes.
 
 [tool_call: ${ToolNames.EDIT} for path 'src/auth.py' replacing old content with new content]
 Refactoring complete. Running verification...
