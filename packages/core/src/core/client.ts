@@ -168,6 +168,25 @@ export class GeminiClient {
     this.chat = await this.startChat();
   }
 
+  /**
+   * Refreshes the system instruction for the current chat.
+   * This should be called when the model is switched or a session is resumed,
+   * to ensure the system prompt matches the current model configuration.
+   */
+  refreshSystemInstruction(): void {
+    if (!this.chat) {
+      debugLogger.debug('Cannot refresh system instruction: chat not initialized');
+      return;
+    }
+
+    const userMemory = this.config.getUserMemory();
+    const model = this.config.getModel();
+    const newSystemInstruction = getCoreSystemPrompt(userMemory, model, this.config);
+
+    this.chat.refreshSystemInstruction(newSystemInstruction);
+    debugLogger.debug('System instruction refreshed for model:', model);
+  }
+
   getLoopDetectionService(): LoopDetectionService {
     return this.loopDetector;
   }

@@ -249,6 +249,18 @@ export class GeminiChat {
   }
 
   /**
+   * Refreshes the system instruction with a new one.
+   * This is called when the model is switched or a session is resumed,
+   * to ensure the system prompt matches the current model configuration.
+   *
+   * @param sysInstr - The new system instruction string.
+   */
+  refreshSystemInstruction(sysInstr: string): void {
+    this.generationConfig.systemInstruction = sysInstr;
+    debugLogger.debug('System instruction refreshed');
+  }
+
+  /**
    * Sends a message to the model and returns the response in chunks.
    *
    * @remarks

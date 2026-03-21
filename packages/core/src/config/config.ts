@@ -1129,6 +1129,20 @@ export class Config {
     await this.modelsConfig.switchModel(authType, modelId, options);
   }
 
+  /**
+   * Refreshes the system prompt for the current chat session.
+   * This should be called after model switching or session resumption
+   * to ensure the system prompt matches the current model configuration.
+   */
+  refreshSystemPrompt(): void {
+    const geminiClient = this.getGeminiClient();
+    if (!geminiClient) {
+      return;
+    }
+
+    geminiClient.refreshSystemInstruction();
+  }
+
   getMaxSessionTurns(): number {
     return this.maxSessionTurns;
   }

@@ -67,6 +67,9 @@ export function useResumeCommand(
       config.startNewSession(sessionId, sessionData);
       await config.getGeminiClient()?.initialize?.();
 
+      // Refresh system prompt to match the current model configuration
+      config.refreshSystemPrompt();
+
       // Refresh terminal UI.
       remount?.();
     },

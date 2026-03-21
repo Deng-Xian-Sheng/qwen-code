@@ -338,6 +338,9 @@ export function ModelDialog({ onClose }: ModelDialogProps): React.JSX.Element {
           logModelSlashCommand(config, event);
         }
 
+        // Refresh system prompt to match the new model configuration
+        config.refreshSystemPrompt();
+
         after = config.getContentGeneratorConfig?.() as
           | ContentGeneratorConfig
           | undefined;
