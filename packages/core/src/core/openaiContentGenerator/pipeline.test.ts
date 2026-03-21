@@ -72,7 +72,6 @@ describe('ContentGenerationPipeline', () => {
     } as unknown as ErrorHandler;
 
     // Mock configs
-    mockCliConfig = {} as Config;
     mockContentGeneratorConfig = {
       model: 'test-model',
       authType: 'openai' as AuthType,
@@ -82,6 +81,12 @@ describe('ContentGenerationPipeline', () => {
         max_tokens: 1000,
       },
     } as ContentGeneratorConfig;
+
+    mockCliConfig = {
+      getContentGeneratorConfig: vi
+        .fn()
+        .mockReturnValue(mockContentGeneratorConfig),
+    } as unknown as Config;
 
     // Mock the OpenAIContentConverter constructor
     (OpenAIContentConverter as unknown as Mock).mockImplementation(
@@ -171,10 +176,10 @@ describe('ContentGenerationPipeline', () => {
       );
     });
 
-    it('should use request.model when provided, falling back to configured model', async () => {
+    it('should use configured model from contentGeneratorConfig', async () => {
       // Arrange
       const request: GenerateContentParameters = {
-        model: 'override-model',
+        model: 'test-model',
         contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
       };
       const userPromptId = 'test-prompt-id';
@@ -188,7 +193,7 @@ describe('ContentGenerationPipeline', () => {
           { message: { content: 'Hello response' }, finish_reason: 'stop' },
         ],
         created: Date.now(),
-        model: 'override-model',
+        model: 'test-model',
       } as OpenAI.Chat.ChatCompletion;
       const mockGeminiResponse = new GenerateContentResponse();
 
@@ -207,19 +212,19 @@ describe('ContentGenerationPipeline', () => {
 
       // Assert
       expect(result).toBe(mockGeminiResponse);
-      // request.model should take priority over configured model
+      // Should use configured model from contentGeneratorConfig
       expect(
         (mockConverter as unknown as { setModel: Mock }).setModel,
-      ).toHaveBeenCalledWith('override-model');
+      ).toHaveBeenCalledWith('test-model');
       expect(mockClient.chat.completions.create).toHaveBeenCalledWith(
         expect.objectContaining({
-          model: 'override-model',
+          model: 'test-model',
         }),
         expect.any(Object),
       );
     });
 
-    it('should fall back to configured model when request.model is not provided', async () => {
+    it('should use configured model when contentGeneratorConfig.model is set', async () => {
       // Arrange
       const request: GenerateContentParameters = {
         model: 'test-model',
@@ -255,14 +260,32 @@ describe('ContentGenerationPipeline', () => {
 
       // Assert
       expect(result).toBe(mockGeminiResponse);
-      // Should use configured model when request.model is not provided
+      // Should use configured model from contentGeneratorConfig
       expect(
         (mockConverter as unknown as { setModel: Mock }).setModel,
       ).toHaveBeenCalledWith('test-model');
     });
 
-    it('should derive modalities from effective model', async () => {
-      // Arrange
+    it('should derive modalities from configured model', async () => {
+      // Arrange - use a model with vision capabilities in contentGeneratorConfig
+      const visionContentGeneratorConfig = {
+        ...mockContentGeneratorConfig,
+        model: 'qwen3.5-plus',
+      };
+      const visionCliConfig = {
+        getContentGeneratorConfig: vi
+          .fn()
+          .mockReturnValue(visionContentGeneratorConfig),
+      } as unknown as Config;
+      const visionPipelineConfig = {
+        ...mockConfig,
+        cliConfig: visionCliConfig,
+        contentGeneratorConfig: visionContentGeneratorConfig,
+      };
+      const visionPipeline = new ContentGenerationPipeline(
+        visionPipelineConfig,
+      );
+
       const request: GenerateContentParameters = {
         model: 'qwen3.5-plus',
         contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
@@ -291,10 +314,10 @@ describe('ContentGenerationPipeline', () => {
       );
 
       // Act
-      await pipeline.execute(request, userPromptId);
+      await visionPipeline.execute(request, userPromptId);
 
       // Assert
-      // setModalities should be called with modalities derived from the effective model
+      // setModalities should be called with modalities derived from the configured model
       expect(mockConverter.setModalities).toHaveBeenCalledWith({
         image: true,
         video: true,
@@ -1205,10 +1228,10 @@ describe('ContentGenerationPipeline', () => {
       expect(totalFunctionCalls).toBe(1);
     });
 
-    it('should use request.model for streaming requests', async () => {
+    it('should use configured model for streaming requests', async () => {
       // Arrange
       const request: GenerateContentParameters = {
-        model: 'streaming-override-model',
+        model: 'test-model',
         contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
       };
       const userPromptId = 'test-prompt-id';
@@ -1245,13 +1268,29 @@ describe('ContentGenerationPipeline', () => {
       }
 
       // Assert
-      expect(mockConverter.setModel).toHaveBeenCalledWith(
-        'streaming-override-model',
-      );
+      expect(mockConverter.setModel).toHaveBeenCalledWith('test-model');
     });
 
-    it('should derive modalities from effective model for streaming requests', async () => {
-      // Arrange
+    it('should derive modalities from configured model for streaming requests', async () => {
+      // Arrange - use a model with vision capabilities in contentGeneratorConfig
+      const visionContentGeneratorConfig = {
+        ...mockContentGeneratorConfig,
+        model: 'qwen-vl-max',
+      };
+      const visionCliConfig = {
+        getContentGeneratorConfig: vi
+          .fn()
+          .mockReturnValue(visionContentGeneratorConfig),
+      } as unknown as Config;
+      const visionPipelineConfig = {
+        ...mockConfig,
+        cliConfig: visionCliConfig,
+        contentGeneratorConfig: visionContentGeneratorConfig,
+      };
+      const visionPipeline = new ContentGenerationPipeline(
+        visionPipelineConfig,
+      );
+
       const request: GenerateContentParameters = {
         model: 'qwen-vl-max',
         contents: [{ parts: [{ text: 'Hello' }], role: 'user' }],
@@ -1281,7 +1320,7 @@ describe('ContentGenerationPipeline', () => {
       );
 
       // Act
-      const resultGenerator = await pipeline.executeStream(
+      const resultGenerator = await visionPipeline.executeStream(
         request,
         userPromptId,
       );

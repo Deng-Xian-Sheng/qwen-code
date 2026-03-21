@@ -174,9 +174,9 @@ ${subagentDescriptions}
 When using the Task tool, you must specify a subagent_type parameter to select which agent type to use.
 
 Optional: You can specify a \`model\` parameter to override the subagent's default model.
-Available models:
+**Available models:**
 ${modelList}
-If you encounter a difficult problem that you have tried—unsuccessfully—to solve multiple times, or if you need to find a model with visual capabilities, consider using "Task" and specifying a particular model. For challenging problems, try selecting a model different from the one you typically use; it may offer unique insights.
+**If you encounter a difficult problem that you have tried—unsuccessfully—to solve multiple times, or if you need to find a model with visual capabilities, consider using "Task" and specifying a particular model. For challenging problems, try selecting a model different from the one you typically use; it may offer unique insights.**
 
 When NOT to use the Agent tool:
 - If you want to read a specific file path, use the Read or Glob tool instead of the Agent tool, to find the match more quickly

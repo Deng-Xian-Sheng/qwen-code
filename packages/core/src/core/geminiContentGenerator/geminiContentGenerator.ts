@@ -21,6 +21,7 @@ import type {
   ContentGenerator,
   ContentGeneratorConfig,
 } from '../contentGenerator.js';
+import type { Config } from '../../config/config.js';
 
 /**
  * A wrapper for GoogleGenAI that implements the ContentGenerator interface.
@@ -28,6 +29,7 @@ import type {
 export class GeminiContentGenerator implements ContentGenerator {
   private readonly googleGenAI: GoogleGenAI;
   private readonly contentGeneratorConfig?: ContentGeneratorConfig;
+  private readonly cliConfig?: Config;
 
   constructor(
     options: {
@@ -36,6 +38,7 @@ export class GeminiContentGenerator implements ContentGenerator {
       httpOptions?: { headers: Record<string, string> };
     },
     contentGeneratorConfig?: ContentGeneratorConfig,
+    cliConfig?: Config,
   ) {
     const customHeaders = contentGeneratorConfig?.customHeaders;
     const finalOptions = customHeaders
@@ -58,12 +61,26 @@ export class GeminiContentGenerator implements ContentGenerator {
 
     this.googleGenAI = new GoogleGenAI(finalOptions);
     this.contentGeneratorConfig = contentGeneratorConfig;
+    this.cliConfig = cliConfig;
+  }
+
+  /**
+   * Get the current content generator config.
+   * Uses cliConfig.getContentGeneratorConfig() to support subagent model override via Proxy.
+   * Falls back to contentGeneratorConfig if cliConfig is not available.
+   */
+  private getContentGeneratorConfig(): ContentGeneratorConfig | undefined {
+    return (
+      this.cliConfig?.getContentGeneratorConfig?.() ??
+      this.contentGeneratorConfig
+    );
   }
 
   private buildGenerateContentConfig(
     request: GenerateContentParameters,
   ): GenerateContentConfig {
-    const configSamplingParams = this.contentGeneratorConfig?.samplingParams;
+    const cgConfig = this.getContentGeneratorConfig();
+    const configSamplingParams = cgConfig?.samplingParams;
     const requestConfig = request.config || {};
 
     // Helper function to get parameter value with priority: config > request > default
@@ -118,7 +135,8 @@ export class GeminiContentGenerator implements ContentGenerator {
   private buildThinkingConfig():
     | { includeThoughts: boolean; thinkingLevel?: ThinkingLevel }
     | undefined {
-    const reasoning = this.contentGeneratorConfig?.reasoning;
+    const cgConfig = this.getContentGeneratorConfig();
+    const reasoning = cgConfig?.reasoning;
 
     if (reasoning === false) {
       return { includeThoughts: false };

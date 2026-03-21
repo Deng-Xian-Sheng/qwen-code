@@ -5,6 +5,7 @@ exports[`Core System Prompt (prompts.ts) > should append userMemory with separat
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -213,6 +214,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved.
 
@@ -227,6 +230,7 @@ exports[`Core System Prompt (prompts.ts) > should include git instructions when 
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -450,6 +454,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -459,6 +465,7 @@ exports[`Core System Prompt (prompts.ts) > should include non-sandbox instructio
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -667,6 +674,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -676,6 +685,7 @@ exports[`Core System Prompt (prompts.ts) > should include sandbox-specific instr
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -884,6 +894,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -893,6 +905,7 @@ exports[`Core System Prompt (prompts.ts) > should include seatbelt-specific inst
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -1101,6 +1114,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -1110,6 +1125,7 @@ exports[`Core System Prompt (prompts.ts) > should not include git instructions w
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -1317,6 +1333,8 @@ I found the following 'app.config' files:
 - /path/to/moduleB/app.config
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
+
+
 
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
@@ -1327,6 +1345,7 @@ exports[`Core System Prompt (prompts.ts) > should return the base prompt when no
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -1534,6 +1553,8 @@ I found the following 'app.config' files:
 - /path/to/moduleB/app.config
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
+
+
 
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
@@ -1544,6 +1565,7 @@ exports[`Core System Prompt (prompts.ts) > should return the base prompt when us
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -1751,6 +1773,8 @@ I found the following 'app.config' files:
 - /path/to/moduleB/app.config
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
+
+
 
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
@@ -1761,6 +1785,7 @@ exports[`Core System Prompt (prompts.ts) > should return the base prompt when us
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -1969,6 +1994,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -1978,6 +2005,7 @@ exports[`Model-specific tool call formats > should preserve model-specific forma
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -2209,6 +2237,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -2218,6 +2248,7 @@ exports[`Model-specific tool call formats > should preserve model-specific forma
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -2508,6 +2539,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved.
 
@@ -2521,6 +2554,7 @@ exports[`Model-specific tool call formats > should use JSON format for qwen-vl m
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -2752,6 +2786,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -2761,6 +2797,7 @@ exports[`Model-specific tool call formats > should use XML format for qwen3-code
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -3051,6 +3088,8 @@ I found the following 'app.config' files:
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
 
+
+
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
 `;
@@ -3060,6 +3099,7 @@ exports[`Model-specific tool call formats > should use bracket format for generi
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -3267,6 +3307,8 @@ I found the following 'app.config' files:
 - /path/to/moduleB/app.config
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
+
+
 
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."
@@ -3277,6 +3319,7 @@ exports[`Model-specific tool call formats > should use bracket format when no mo
 
 # Core Mandates
 
+- **Step-by-Step Reasoning:** Please reason step by step.
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, configuration files like 'package.json', 'Cargo.toml', 'requirements.txt', 'build.gradle', etc., or observe neighboring files) before employing it.
 - **Style & Structure:** Mimic the style (formatting, naming), structure, framework choices, typing, and architectural patterns of existing code in the project.
@@ -3484,6 +3527,8 @@ I found the following 'app.config' files:
 - /path/to/moduleB/app.config
 To help you check their settings, I can read their contents. Which one would you like to start with, or should I read all of them?
 </example>
+
+
 
 # Final Reminder
 Your core function is efficient assistance. Balance extreme conciseness with the crucial need for clarity, especially regarding potential system modifications. Always prioritize user control and project conventions. Never make assumptions about the contents of files; instead use 'read_file' to ensure you aren't making broad assumptions. Finally, you are an agent - please keep going until the user's query is completely resolved."

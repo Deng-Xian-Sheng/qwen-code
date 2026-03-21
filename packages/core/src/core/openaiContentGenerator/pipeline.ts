@@ -39,23 +39,37 @@ export interface PipelineConfig {
 export class ContentGenerationPipeline {
   client: OpenAI;
   private converter: OpenAIContentConverter;
-  private contentGeneratorConfig: ContentGeneratorConfig;
 
   constructor(private config: PipelineConfig) {
-    this.contentGeneratorConfig = config.contentGeneratorConfig;
     this.client = this.config.provider.buildClient();
+    // Use contentGeneratorConfig from PipelineConfig directly for initial setup
+    // This ensures the model is available even before getContentGeneratorConfig() returns a value
+    const cgConfig = config.contentGeneratorConfig;
     this.converter = new OpenAIContentConverter(
-      this.contentGeneratorConfig.model,
-      this.contentGeneratorConfig.schemaCompliance,
-      this.contentGeneratorConfig.modalities ?? {},
+      cgConfig.model,
+      cgConfig.schemaCompliance,
+      cgConfig.modalities ?? {},
     );
+  }
+
+  /**
+   * Get the current content generator config.
+   * Uses cliConfig.getContentGeneratorConfig() to support subagent model override via Proxy.
+   */
+  private getContentGeneratorConfig(): ContentGeneratorConfig {
+    const cgConfig = this.config.cliConfig.getContentGeneratorConfig();
+    if (!cgConfig) {
+      throw new Error('ContentGeneratorConfig is not initialized');
+    }
+    return cgConfig;
   }
 
   async execute(
     request: GenerateContentParameters,
     userPromptId: string,
   ): Promise<GenerateContentResponse> {
-    const effectiveModel = request.model || this.contentGeneratorConfig.model;
+    const cgConfig = this.getContentGeneratorConfig();
+    const effectiveModel = cgConfig.model;
     this.converter.setModel(effectiveModel);
     this.converter.setModalities(defaultModalities(effectiveModel));
     return this.executeWithErrorHandling(
@@ -83,7 +97,8 @@ export class ContentGenerationPipeline {
     request: GenerateContentParameters,
     userPromptId: string,
   ): Promise<AsyncGenerator<GenerateContentResponse>> {
-    const effectiveModel = request.model || this.contentGeneratorConfig.model;
+    const cgConfig = this.getContentGeneratorConfig();
+    const effectiveModel = cgConfig.model;
     this.converter.setModel(effectiveModel);
     this.converter.setModalities(defaultModalities(effectiveModel));
     return this.executeWithErrorHandling(
@@ -331,7 +346,8 @@ export class ContentGenerationPipeline {
   ): Record<string, unknown> {
     const defaultSamplingParams =
       this.config.provider.getDefaultGenerationConfig();
-    const configSamplingParams = this.contentGeneratorConfig.samplingParams;
+    const cgConfig = this.getContentGeneratorConfig();
+    const configSamplingParams = cgConfig.samplingParams;
 
     // Helper function to get parameter value with priority: config > request > default
     const getParameterValue = <T>(
@@ -409,7 +425,8 @@ export class ContentGenerationPipeline {
       return {};
     }
 
-    const reasoning = this.contentGeneratorConfig.reasoning;
+    const cgConfig = this.getContentGeneratorConfig();
+    const reasoning = cgConfig.reasoning;
 
     if (reasoning === false || reasoning === undefined) {
       return {};
@@ -476,10 +493,11 @@ export class ContentGenerationPipeline {
     isStreaming: boolean,
     effectiveModel: string,
   ): RequestContext {
+    const cgConfig = this.getContentGeneratorConfig();
     return {
       userPromptId,
       model: effectiveModel,
-      authType: this.contentGeneratorConfig.authType || 'unknown',
+      authType: cgConfig.authType || 'unknown',
       startTime: Date.now(),
       duration: 0,
       isStreaming,

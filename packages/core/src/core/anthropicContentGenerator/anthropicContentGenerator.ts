@@ -52,11 +52,13 @@ type MessageCreateParamsWithThinking = MessageCreateParamsNonStreaming & {
 export class AnthropicContentGenerator implements ContentGenerator {
   private client: Anthropic;
   private converter: AnthropicContentConverter;
+  private initialContentGeneratorConfig: ContentGeneratorConfig;
 
   constructor(
-    private contentGeneratorConfig: ContentGeneratorConfig,
+    contentGeneratorConfig: ContentGeneratorConfig,
     private readonly cliConfig: Config,
   ) {
+    this.initialContentGeneratorConfig = contentGeneratorConfig;
     const defaultHeaders = this.buildHeaders();
     const baseURL = contentGeneratorConfig.baseUrl;
     // Configure runtime options to ensure user-configured timeout works as expected
@@ -79,6 +81,18 @@ export class AnthropicContentGenerator implements ContentGenerator {
       contentGeneratorConfig.model,
       contentGeneratorConfig.schemaCompliance,
       contentGeneratorConfig.enableCacheControl,
+    );
+  }
+
+  /**
+   * Get the current content generator config.
+   * Uses cliConfig.getContentGeneratorConfig() to support subagent model override via Proxy.
+   * Falls back to initialContentGeneratorConfig if cliConfig is not available.
+   */
+  private getContentGeneratorConfig(): ContentGeneratorConfig {
+    return (
+      this.cliConfig.getContentGeneratorConfig?.() ??
+      this.initialContentGeneratorConfig
     );
   }
 
@@ -152,10 +166,11 @@ export class AnthropicContentGenerator implements ContentGenerator {
   private buildHeaders(): Record<string, string> {
     const version = this.cliConfig.getCliVersion() || 'unknown';
     const userAgent = `QwenCode/${version} (${process.platform}; ${process.arch})`;
-    const { customHeaders } = this.contentGeneratorConfig;
+    const cgConfig = this.getContentGeneratorConfig();
+    const { customHeaders } = cgConfig;
 
     const betas: string[] = [];
-    const reasoning = this.contentGeneratorConfig.reasoning;
+    const reasoning = cgConfig.reasoning;
 
     // Interleaved thinking is used when we send the `thinking` field.
     if (reasoning !== false) {
@@ -191,9 +206,10 @@ export class AnthropicContentGenerator implements ContentGenerator {
     const sampling = this.buildSamplingParameters(request);
     const thinking = this.buildThinkingConfig(request);
     const outputConfig = this.buildOutputConfig();
+    const cgConfig = this.getContentGeneratorConfig();
 
     return {
-      model: this.contentGeneratorConfig.model,
+      model: cgConfig.model,
       system,
       messages,
       tools,
@@ -209,7 +225,8 @@ export class AnthropicContentGenerator implements ContentGenerator {
     top_p?: number;
     top_k?: number;
   } {
-    const configSamplingParams = this.contentGeneratorConfig.samplingParams;
+    const cgConfig = this.getContentGeneratorConfig();
+    const configSamplingParams = cgConfig.samplingParams;
     const requestConfig = request.config || {};
 
     const getParam = <T>(
@@ -241,7 +258,8 @@ export class AnthropicContentGenerator implements ContentGenerator {
       return undefined;
     }
 
-    const reasoning = this.contentGeneratorConfig.reasoning;
+    const cgConfig = this.getContentGeneratorConfig();
+    const reasoning = cgConfig.reasoning;
 
     if (reasoning === false) {
       return undefined;
@@ -268,7 +286,8 @@ export class AnthropicContentGenerator implements ContentGenerator {
   private buildOutputConfig():
     | { effort: 'low' | 'medium' | 'high' }
     | undefined {
-    const reasoning = this.contentGeneratorConfig.reasoning;
+    const cgConfig = this.getContentGeneratorConfig();
+    const reasoning = cgConfig.reasoning;
     if (reasoning === false || reasoning === undefined) {
       return undefined;
     }
@@ -284,7 +303,8 @@ export class AnthropicContentGenerator implements ContentGenerator {
     stream: AsyncIterable<RawMessageStreamEvent>,
   ): AsyncGenerator<GenerateContentResponse> {
     let messageId: string | undefined;
-    let model = this.contentGeneratorConfig.model;
+    const cgConfig = this.getContentGeneratorConfig();
+    let model = cgConfig.model;
     let cachedTokens = 0;
     let promptTokens = 0;
     let completionTokens = 0;
@@ -485,7 +505,8 @@ export class AnthropicContentGenerator implements ContentGenerator {
     const response = new GenerateContentResponse();
     response.responseId = responseId;
     response.createTime = Date.now().toString();
-    response.modelVersion = model || this.contentGeneratorConfig.model;
+    const cgConfig = this.getContentGeneratorConfig();
+    response.modelVersion = model || cgConfig.model;
     response.promptFeedback = { safetyRatings: [] };
 
     const candidateParts = part ? [part as unknown as Part] : [];

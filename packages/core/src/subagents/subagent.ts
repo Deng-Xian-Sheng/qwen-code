@@ -7,6 +7,7 @@
 import { reportError } from '../utils/errorReporting.js';
 import type { Config } from '../config/config.js';
 import { createDebugLogger } from '../utils/debugLogger.js';
+import { createSubagentConfigProxy } from './configProxy.js';
 
 const debugLogger = createDebugLogger('SUBAGENT');
 import { type ToolCallRequestInfo } from '../core/turn.js';
@@ -242,9 +243,19 @@ export class SubAgentScope {
     eventEmitter?: SubAgentEventEmitter,
     hooks?: SubagentHooks,
   ): Promise<SubAgentScope> {
+    // Create proxy config if subagent has its own model
+    const subagentModel = modelConfig.model;
+    let effectiveConfig = runtimeContext;
+
+    if (subagentModel && subagentModel !== runtimeContext.getModel()) {
+      effectiveConfig = createSubagentConfigProxy(runtimeContext, {
+        model: subagentModel,
+      });
+    }
+
     return new SubAgentScope(
       name,
-      runtimeContext,
+      effectiveConfig,
       promptConfig,
       modelConfig,
       runConfig,
@@ -332,10 +343,7 @@ export class SubAgentScope {
       this.eventEmitter?.emit(SubAgentEventType.START, {
         subagentId: this.subagentId,
         name: this.name,
-        model:
-          this.modelConfig.model ||
-          this.runtimeContext.getModel() ||
-          DEFAULT_QWEN_MODEL,
+        model: this.runtimeContext.getModel() || DEFAULT_QWEN_MODEL,
         tools: (this.toolConfig?.tools || ['*']).map((t) =>
           typeof t === 'string' ? t : t.name,
         ),
@@ -384,9 +392,7 @@ export class SubAgentScope {
 
         const roundStreamStart = Date.now();
         const responseStream = await chat.sendMessageStream(
-          this.modelConfig.model ||
-            this.runtimeContext.getModel() ||
-            DEFAULT_QWEN_MODEL,
+          this.runtimeContext.getModel() || DEFAULT_QWEN_MODEL,
           messageParams,
           promptId,
         );
@@ -999,10 +1005,7 @@ Important Rules:
  - You operate in non-interactive mode: do not ask the user questions; proceed with available context.
  - Use tools only when necessary to obtain facts or make changes.
  - When the task is complete, return the final result as a normal model response (not a tool call) and stop.`;
-    const model =
-      this.modelConfig.model ||
-      this.runtimeContext.getModel() ||
-      DEFAULT_QWEN_MODEL;
+    const model = this.runtimeContext.getModel() || DEFAULT_QWEN_MODEL;
 
     const unicodePathInstructions = getUnicodePathHandlingInstructions(model);
     if (unicodePathInstructions) {
