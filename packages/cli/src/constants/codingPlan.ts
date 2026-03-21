@@ -57,6 +57,7 @@ export function generateCodingPlanTemplate(
         name: '[Bailian Coding Plan] qwen3.5-plus',
         baseUrl: 'https://coding.dashscope.aliyuncs.com/v1',
         envKey: CODING_PLAN_ENV_KEY,
+        capabilities: { vision: true },
         generationConfig: {
           extra_body: {
             enable_thinking: true,
@@ -81,6 +82,7 @@ export function generateCodingPlanTemplate(
         name: '[Bailian Coding Plan] kimi-k2.5',
         baseUrl: 'https://coding.dashscope.aliyuncs.com/v1',
         envKey: CODING_PLAN_ENV_KEY,
+        capabilities: { vision: true },
         generationConfig: {
           extra_body: {
             enable_thinking: true,
@@ -152,6 +154,7 @@ export function generateCodingPlanTemplate(
       name: '[Bailian Coding Plan for Global/Intl] qwen3.5-plus',
       baseUrl: 'https://coding-intl.dashscope.aliyuncs.com/v1',
       envKey: CODING_PLAN_ENV_KEY,
+      capabilities: { vision: true },
       generationConfig: {
         extra_body: {
           enable_thinking: true,
@@ -230,6 +233,7 @@ export function generateCodingPlanTemplate(
       name: '[Bailian Coding Plan for Global/Intl] kimi-k2.5',
       baseUrl: 'https://coding-intl.dashscope.aliyuncs.com/v1',
       envKey: CODING_PLAN_ENV_KEY,
+      capabilities: { vision: true },
       generationConfig: {
         extra_body: {
           enable_thinking: true,
