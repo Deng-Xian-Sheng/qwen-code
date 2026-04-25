@@ -53,6 +53,19 @@ export function generateCodingPlanTemplate(
     // This ensures existing users don't get prompted for unnecessary updates
     return [
       {
+        id: 'qwen3.6-plus',
+        name: '[Bailian Coding Plan for Global/Intl] qwen3.6-plus',
+        baseUrl: 'https://coding-intl.dashscope.aliyuncs.com/v1',
+        envKey: CODING_PLAN_ENV_KEY,
+        capabilities: { vision: true },
+        generationConfig: {
+          extra_body: {
+            enable_thinking: true,
+          },
+          contextWindowSize: 1000000,
+        },
+      },
+      {
         id: 'qwen3.5-plus',
         name: '[Bailian Coding Plan] qwen3.5-plus',
         baseUrl: 'https://coding.dashscope.aliyuncs.com/v1',
@@ -149,6 +162,19 @@ export function generateCodingPlanTemplate(
 
   // Global region uses Bailian Coding Plan branding for Global/Intl
   return [
+    {
+      id: 'qwen3.6-plus',
+      name: '[Bailian Coding Plan for Global/Intl] qwen3.6-plus',
+      baseUrl: 'https://coding-intl.dashscope.aliyuncs.com/v1',
+      envKey: CODING_PLAN_ENV_KEY,
+      capabilities: { vision: true },
+      generationConfig: {
+        extra_body: {
+          enable_thinking: true,
+        },
+        contextWindowSize: 1000000,
+      },
+    },
     {
       id: 'qwen3.5-plus',
       name: '[Bailian Coding Plan for Global/Intl] qwen3.5-plus',
