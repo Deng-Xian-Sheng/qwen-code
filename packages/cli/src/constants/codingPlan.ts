@@ -54,7 +54,7 @@ export function generateCodingPlanTemplate(
     return [
       {
         id: 'qwen3.6-plus',
-        name: '[Bailian Coding Plan for Global/Intl] qwen3.6-plus',
+        name: '[Bailian Coding Plan] qwen3.6-plus',
         baseUrl: 'https://coding-intl.dashscope.aliyuncs.com/v1',
         envKey: CODING_PLAN_ENV_KEY,
         capabilities: { vision: true },
